@@ -1,0 +1,14 @@
+<component name="ArtifactManager">
+  <artifact type="war" name="OHDMImportTool:war">
+    <output-path>$PROJECT_DIR$/target</output-path>
+    <properties id="maven-jee-properties">
+      <options>
+        <module>OHDMImportTool</module>
+        <packaging>war</packaging>
+      </options>
+    </properties>
+    <root id="archive" name="ohm_Import.war">
+      <element id="artifact" artifact-name="OHDMImportTool:war exploded" />
+    </root>
+  </artifact>
+</component>
