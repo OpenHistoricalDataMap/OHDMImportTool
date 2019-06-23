@@ -82,9 +82,10 @@ function displayImportedShapes(importedShapes)
         }
 
         let classificationId = importedShapes[i].classificationId;
+        let geoJson = importedShapes[i].geoJson;
 
         let shapeId = "Shape-" + id;
-
+        let mapId = "map-"+shapeId;
         classificationDropDown.setAttribute("id", "class" + i);
         let importedShapeForm =
         $("<form id=\""+ i +"\">" +
@@ -108,12 +109,51 @@ function displayImportedShapes(importedShapes)
                 "<label>Klassifizierung</label>" +
                 classificationDropDown.outerHTML +
             "</div>" +
+            "<div id=\""+mapId+"\" class=\"map\">"+
+
+            "</div>"+
             "<button type=\"button\" class=\"btn btn-primary\" id=\"update"+ shapeId +"\">Update</button>" +
         "</form><hr>");
 
         $("#importedShapes").append(importedShapeForm);
         $("#update"  + shapeId).click(function() {
             updateShape(i);
+        });
+
+        var geojsonObject =
+        {
+            "type": "FeatureCollection",
+            "crs": {
+                "type": "name",
+                "properties": {
+                    "name": "EPSG:4326"
+                }
+            },
+            "features": [{"type":"Feature", "properties":{}, "geometry": JSON.parse(geoJson) }]
+        };
+
+        var vectorSource = new ol.source.Vector({
+            features: (new ol.format.GeoJSON()).readFeatures(geojsonObject)
+        });
+
+
+        var vectorLayer = new ol.layer.Vector({
+            source: vectorSource
+        });
+
+        var map = new ol.Map({
+            target: mapId,
+            layers: [
+                new ol.layer.Tile({
+                    source: new ol.source.OSM()
+                }),
+                vectorLayer
+            ],
+            view: new ol.View({
+                projection: 'EPSG:4326',
+                center: [0,0],
+                zoom: 2
+            })
         });
     }
 }

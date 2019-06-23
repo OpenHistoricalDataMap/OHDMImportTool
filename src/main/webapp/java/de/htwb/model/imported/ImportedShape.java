@@ -13,6 +13,7 @@ public class ImportedShape
     private int classificationId;
     private String username;
     private transient Polygon[] polygons;
+    private String geoJson;
 
     public ImportedShape(int id, String name, Date validSince, Date validUntil, Polygon[] polygons)
     {
@@ -62,5 +63,13 @@ public class ImportedShape
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public String getGeoJson() {
+        return geoJson;
+    }
+
+    public void setGeoJson(String geoJson) {
+        this.geoJson = geoJson;
     }
 }

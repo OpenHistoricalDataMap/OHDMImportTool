@@ -122,7 +122,7 @@ public class DatabaseRepository {
 
     private ImportedShape getImportedShapeFromCache(String tableName, int id) throws SQLException
     {
-        final String sql = String.format("SELECT \"name\", \"validSince\", \"validUntil\", \"geom\" FROM \"%s\".\"%s\" WHERE gid = ?", "importedCache", tableName);
+        final String sql = String.format("SELECT \"name\", \"validSince\", \"validUntil\", \"geom\", ST_ASGEOJSON(geom) FROM \"%s\".\"%s\" WHERE gid = ?", "importedCache", tableName);
         PreparedStatement ps = connection.prepareStatement(sql);
         ps.setInt(1, id);
 
@@ -137,7 +137,9 @@ public class DatabaseRepository {
             PGgeometry geom = (PGgeometry) rs.getObject(4);
             MultiPolygon multiPolygon = new MultiPolygon(geom.getGeometry().getValue());
             Polygon[] polygons = multiPolygon.getPolygons();
-            return new ImportedShape(id, name, validSince, validUntil, polygons);
+            ImportedShape is = new ImportedShape(id, name, validSince, validUntil, polygons);
+            is.setGeoJson(rs.getString(5));
+            return is;
         }
     }
 
