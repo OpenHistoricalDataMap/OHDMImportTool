@@ -82,7 +82,7 @@ function displayImportedShapes(importedShapes)
         }
 
         let classificationId = importedShapes[i].classificationId;
-        let geoJson = importedShapes[i].geoJson;
+        let geoJsonObj = JSON.parse(importedShapes[i].geoJson);
 
         let shapeId = "Shape-" + id;
         let mapId = "map-"+shapeId;
@@ -129,19 +129,22 @@ function displayImportedShapes(importedShapes)
                     "name": "EPSG:4326"
                 }
             },
-            "features": [{"type":"Feature", "properties":{}, "geometry": JSON.parse(geoJson) }]
+            "features": [{"type":"Feature", "properties":{}, "geometry": geoJsonObj }]
         };
 
-        var vectorSource = new ol.source.Vector({
+        let vectorSource = new ol.source.Vector({
             features: (new ol.format.GeoJSON()).readFeatures(geojsonObject)
         });
 
 
-        var vectorLayer = new ol.layer.Vector({
+        let vectorLayer = new ol.layer.Vector({
             source: vectorSource
         });
 
-        var map = new ol.Map({
+        let center = [0, 0];
+        if(geoJsonObj.coordinates[0][0][0])
+            center = geoJsonObj.coordinates[0][0][0];
+        let map = new ol.Map({
             target: mapId,
             layers: [
                 new ol.layer.Tile({
@@ -151,8 +154,8 @@ function displayImportedShapes(importedShapes)
             ],
             view: new ol.View({
                 projection: 'EPSG:4326',
-                center: [0,0],
-                zoom: 2
+                center: center,
+                zoom: 8
             })
         });
     }
