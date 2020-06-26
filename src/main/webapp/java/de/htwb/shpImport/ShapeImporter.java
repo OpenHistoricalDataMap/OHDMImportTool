@@ -14,10 +14,10 @@ import de.htwb.model.DatabaseRepository;
 import de.htwb.model.imported.ImportedShape;
 import org.apache.commons.io.*;
 
+import static de.htwb.utils.Config.*;
+
 public class ShapeImporter
 {
-    private final String SHP_TO_PGSQL_FILE_PATH = "C:\\Program Files\\PostgreSQL\\11\\bin\\shp2pgsql.exe";
-    private final String PGSQL_FILE_PATH = "C:\\Program Files\\PostgreSQL\\11\\bin\\psql.exe";
     private final int BUFFER_SIZE = 8 * 1024;
 
     private final File uploadedFilesDir = new File("uploaded");

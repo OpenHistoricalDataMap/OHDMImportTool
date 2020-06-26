@@ -3,24 +3,16 @@ package de.htwb.model;
 import java.sql.*;
 import java.util.ArrayList;
 
-import com.sun.xml.internal.ws.wsdl.writer.document.Import;
 import de.htwb.model.imported.ImportedShape;
 import de.htwb.model.ohdm.*;
 import org.postgis.*;
 import org.postgresql.PGConnection;
 
+import static de.htwb.utils.Config.*;
+
 public class DatabaseRepository {
 
     private Connection connection;
-
-    private final String DB_USER = "geoserver";
-    private final String DB_PASS = "ohdm4ever!";
-    private final String DB_NAME = "ohdm_test";
-    private final String DB_HOST = "ohm.f4.htw-berlin.de";
-
-    public final String TEMP_SCHEME = "temp";
-    public final String TEST_SCHEME = "ohm_test";
-    public final String PRODUCTIVE_SCHEME = "ohdm";
 
     public void connect() throws SQLException
     {
@@ -61,7 +53,7 @@ public class DatabaseRepository {
         if(connection == null)
             connect();
 
-        final String sql = String.format("SELECT gid FROM \"%s\".\"%s\"", "importedCache", tableName);
+        final String sql = String.format("SELECT gid FROM \"%s\".\"%s\"", SCHEME_CACHE, tableName);
         ArrayList<ImportedShape> importedShapes = new ArrayList<>();
         PreparedStatement stmtGetImportedShapes = connection.prepareStatement(sql);
 
@@ -83,7 +75,7 @@ public class DatabaseRepository {
         if(connection == null)
             connect();
 
-        final String sql = String.format("SELECT gid FROM \"%s\".\"%s\"", TEMP_SCHEME, tableName);
+        final String sql = String.format("SELECT gid FROM \"%s\".\"%s\"", SCHEME_TEMP, tableName);
         ArrayList<ImportedShape> importedShapes = new ArrayList<>();
         PreparedStatement stmtGetImportedShapes = connection.prepareStatement(sql);
 
@@ -102,7 +94,7 @@ public class DatabaseRepository {
 
     private ImportedShape getImportedShapeForId(String tableName, int id) throws SQLException
     {
-        final String sql = String.format("SELECT name, start_date, end_date FROM \"%s\".\"%s\" WHERE gid = ?", TEMP_SCHEME, tableName);
+        final String sql = String.format("SELECT name, start_date, end_date FROM \"%s\".\"%s\" WHERE gid = ?", SCHEME_TEMP,  tableName);
         PreparedStatement ps = connection.prepareStatement(sql);
         ps.setInt(1, id);
 
@@ -122,7 +114,7 @@ public class DatabaseRepository {
 
     private ImportedShape getImportedShapeFromCache(String tableName, int id) throws SQLException
     {
-        final String sql = String.format("SELECT \"name\", \"validSince\", \"validUntil\", \"geom\", ST_ASGEOJSON(geom) FROM \"%s\".\"%s\" WHERE gid = ?", "importedCache", tableName);
+        final String sql = String.format("SELECT \"name\", \"validSince\", \"validUntil\", \"geom\", ST_ASGEOJSON(geom) FROM \"%s\".\"%s\" WHERE gid = ?", SCHEME_CACHE, tableName);
         PreparedStatement ps = connection.prepareStatement(sql);
         ps.setInt(1, id);
 
@@ -146,7 +138,7 @@ public class DatabaseRepository {
     private ArrayList<Polygon> getPolygonsForId(String tableName, int id) throws SQLException
     {
         ArrayList<Polygon> polygons = new ArrayList<>();
-        final String sql = String.format("SELECT ST_GeometryN(geom, generate_series(1, ST_NumGeometries(geom)))  FROM %s.\"%s\" WHERE gid = ?", TEMP_SCHEME, tableName);
+        final String sql = String.format("SELECT ST_GeometryN(geom, generate_series(1, ST_NumGeometries(geom)))  FROM %s.\"%s\" WHERE gid = ?", SCHEME_TEMP, tableName);
         PreparedStatement stmtPolygons = connection.prepareStatement(sql);
         stmtPolygons.setInt(1, id);
 
@@ -225,7 +217,7 @@ public class DatabaseRepository {
 
     private void insertOHDMPolygon(OHDMPolygon polygon) throws SQLException
     {
-        final String sql = String.format("INSERT INTO %s.\"polygons\" (polygon, source_user_id) VALUES (?, ?) RETURNING id", TEST_SCHEME);
+        final String sql = String.format("INSERT INTO %s.\"polygons\" (polygon, source_user_id) VALUES (?, ?) RETURNING id", SCHEME_TEST);
         PreparedStatement stmt = connection.prepareStatement(sql);
         stmt.setObject(1, new PGgeometry(polygon.getPolygon()));
         stmt.setLong(2, polygon.getIdSourceUser());
@@ -242,7 +234,7 @@ public class DatabaseRepository {
 
     private void insertGeoobject(Geoobject geoobject) throws SQLException
     {
-        final String sql = String.format("INSERT INTO %s.\"geoobject\" (name, source_user_id) VALUES (?, ?) RETURNING id", TEST_SCHEME);
+        final String sql = String.format("INSERT INTO %s.\"geoobject\" (name, source_user_id) VALUES (?, ?) RETURNING id", SCHEME_TEST);
         PreparedStatement stmt = connection.prepareStatement(sql);
         stmt.setString(1, geoobject.getName());
         stmt.setLong(2, geoobject.getIdSourceUser());
@@ -265,7 +257,7 @@ public class DatabaseRepository {
 
     private void insertGeoobjectGeometry(GeoobjectGeometry geoobjectGeometry) throws SQLException
     {
-        final String sql = String.format("INSERT INTO %s.\"geoobject_geometry\" (id_target, type_target, id_geoobject_source, classification_id, valid_since, valid_until, source_user_id) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id", TEST_SCHEME);
+        final String sql = String.format("INSERT INTO %s.\"geoobject_geometry\" (id_target, type_target, id_geoobject_source, classification_id, valid_since, valid_until, source_user_id) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id", SCHEME_TEST);
         PreparedStatement stmt = connection.prepareStatement(sql);
         stmt.setLong(1, geoobjectGeometry.getIdTarget());
         stmt.setLong(2, geoobjectGeometry.getIdTargetType());
@@ -295,8 +287,8 @@ public class DatabaseRepository {
 
     public void dropTable(String tableName) throws SQLException
     {
-        final String dropCommand = String.format("DROP TABLE %s.\"%s\"", TEMP_SCHEME, tableName);
-        PreparedStatement stmt = connection.prepareStatement(dropCommand);
+        final String sql = String.format("DROP TABLE %s.\"%s\"", SCHEME_TEMP, tableName);
+        PreparedStatement stmt = connection.prepareStatement(sql);
 
         if(!stmt.execute())
         {
@@ -306,7 +298,7 @@ public class DatabaseRepository {
 
     public ArrayList<OHDMClassification> getClassifications() throws SQLException
     {
-        final String sql = String.format("SELECT * FROM ohm_test.\"classification\"");
+        final String sql = String.format("SELECT * FROM "+SCHEME_TEST+".\"classification\"");
         PreparedStatement stmt = connection.prepareStatement(sql);
 
         ResultSet rs = stmt.executeQuery();
@@ -344,7 +336,7 @@ public class DatabaseRepository {
 
     private boolean createCacheTable(String tableName) throws Exception
     {
-        final String sql = String.format("CREATE TABLE \"importedCache\".\"%s\"\n" +
+        final String sql = String.format("CREATE TABLE \""+SCHEME_CACHE+"\".\"%s\"\n" +
                 "(\n" +
                 "    gid SERIAL,\n" +
                 "    name character varying(254),\n" +
@@ -359,7 +351,7 @@ public class DatabaseRepository {
                 "    OIDS = FALSE\n" +
                 ");\n" +
                 "\n" +
-                "ALTER TABLE \"importedCache\".\"%s\"\n" +
+                "ALTER TABLE \""+SCHEME_CACHE+"\".\"%s\"\n" +
                 "    OWNER to geoserver;", tableName, tableName);
 
         PreparedStatement ps = connection.prepareStatement(sql);
@@ -369,7 +361,7 @@ public class DatabaseRepository {
 
     private void insertShapeIntoCache(String tableName, ImportedShape shape, String userName) throws Exception
     {
-        final String sql = String.format("INSERT INTO \"importedCache\".\"%s\" (\"name\", \"validSince\", \"validUntil\", \"classId\", \"username\", \"geom\") VALUES(?, ?, ?, ?, ?, ?)", tableName);
+        final String sql = String.format("INSERT INTO \""+SCHEME_CACHE+"\".\"%s\" (\"name\", \"validSince\", \"validUntil\", \"classId\", \"username\", \"geom\") VALUES(?, ?, ?, ?, ?, ?)", tableName);
         PreparedStatement ps = connection.prepareStatement(sql);
 
         ps.setString(1, shape.getName());
@@ -392,7 +384,7 @@ public class DatabaseRepository {
 
     public void updateImportedShape(ImportedShape updatedImportedShape, String table) throws Exception
     {
-        final String sql = String.format("UPDATE \"importedCache\".\"%s\" SET \"name\" = ?, \"validSince\" = ?, \"validUntil\" = ?, \"classId\" = ? WHERE gid = ?", table);
+        final String sql = String.format("UPDATE \""+SCHEME_CACHE+"\".\"%s\" SET \"name\" = ?, \"validSince\" = ?, \"validUntil\" = ?, \"classId\" = ? WHERE gid = ?", table);
 
         PreparedStatement ps = connection.prepareStatement(sql);
 
