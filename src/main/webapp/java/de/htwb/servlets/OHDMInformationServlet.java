@@ -32,7 +32,7 @@ public class OHDMInformationServlet extends HttpServlet {
         catch(Exception ex)
         {
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            resp.getWriter().println("Interner Server Fehler");
+            resp.getWriter().println("Internal server error: " + ex.getMessage());
         }
     }
 }

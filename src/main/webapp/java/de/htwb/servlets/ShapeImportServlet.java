@@ -42,7 +42,7 @@ public class ShapeImportServlet extends HttpServlet {
         catch (Exception ex)
         {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            response.getWriter().println("Interner Server Fehler");
+            response.getWriter().println("Internal server error: " + ex.getMessage());
         }
 
     }
