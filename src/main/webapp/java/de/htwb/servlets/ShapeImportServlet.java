@@ -35,8 +35,7 @@ public class ShapeImportServlet extends HttpServlet {
             String userName = request.getParameter("userName");
             String tableName = shapeImporter.importFile(shapefile, userName);
             ArrayList<ImportedShape> importedShapes = shapeImporter.getImportedShapesFromTable(tableName);
-            response.setHeader("content-type", "text/json");
-            response.getWriter().write(String.format("{ \"key\" : %s}", tableName));
+            response.sendRedirect("ShapeUpdate.html?tableKey="+tableName);
 
         }
         catch (Exception ex)

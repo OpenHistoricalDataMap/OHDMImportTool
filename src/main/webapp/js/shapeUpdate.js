@@ -1,6 +1,7 @@
 let baseUrl = "http://localhost:8080/"
 let classificationDropDown;
 let importedShapes;
+let tableKey;
 
 $(document).ready(function() {
     getOHDMInformation();
@@ -12,6 +13,12 @@ function getOHDMInformation()
     let xhr = new XMLHttpRequest();
     let url = baseUrl + "OHDMInformation";
     xhr.open("GET", url, true);
+    tableKey = getUrlVars()["tableKey"];
+
+    if (tableKey)
+    {
+        sendDataWithKey(tableKey);
+    }
 
     xhr.onload = function (e)
     {
@@ -45,6 +52,31 @@ function sendData()
     let key = $("#key").val();
     let xhr = new XMLHttpRequest();
     let url = baseUrl + "ShapeUpdate?tableKey="+key;
+
+    xhr.open("GET", url, true);
+
+    xhr.onload = function (e)
+    {
+        if(this.status === 200)
+        {
+            let data = this.response;
+            let dataObj = JSON.parse(data);
+
+            console.log(dataObj);
+            $("#importedShapes").empty();
+            displayImportedShapes(dataObj.importedShapes);
+            importedShapes = dataObj.importedShapes;
+        }
+    };
+    xhr.send();
+}
+
+function sendDataWithKey(tableKey)
+{
+
+    let xhr = new XMLHttpRequest();
+    let url = baseUrl + "ShapeUpdate?tableKey="+tableKey;
+    tableKey = "";
 
     xhr.open("GET", url, true);
 
@@ -211,4 +243,12 @@ function sendUpdateObj(obj)
         }
     };
     xhr.send(formData);
+}
+
+function getUrlVars() {
+    var vars = {};
+    var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+        vars[key] = value;
+    });
+    return vars;
 }
