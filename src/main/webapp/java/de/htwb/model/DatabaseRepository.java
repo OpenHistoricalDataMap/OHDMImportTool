@@ -170,7 +170,6 @@ public class DatabaseRepository {
         }
     }
 
-
     private ArrayList<OHDMPolygon> getOHDMPolygonsFromShape(ImportedShape importedShape)
     {
         ArrayList<OHDMPolygon> OHDMPolygons = new ArrayList<>();
