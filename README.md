@@ -20,6 +20,8 @@ Clone this project:
 $ git clone https://github.com/OpenHistoricalDataMap/OHDMImportTool.git
 ```
 
+Configure the necessary constants in the file [src/main/webapp/java/de/htwb/utils/Config.java](src/main/webapp/java/de/htwb/utils/Config.java)
+
 ### Run with IntelliJ IDE
 
 - open the project with IntelliJ 
