@@ -365,7 +365,10 @@ public class DatabaseRepository {
         final String sql = String.format("INSERT INTO \""+SCHEME_CACHE+"\".\"%s\" (\"name\", \"validSince\", \"validUntil\", \"classId\", \"username\", \"geom\") VALUES(?, ?, ?, ?, ?, ?)", tableName);
         PreparedStatement ps = connection.prepareStatement(sql);
 
-        ps.setString(1, shape.getName());
+        if (shape.getName() != null)
+            ps.setString(1, shape.getName());
+        else
+            ps.setNull(1, Types.VARCHAR);
         if(shape.getValidSince() != null)
             ps.setDate(2, new java.sql.Date(shape.getValidSince().getTime()));
         else
