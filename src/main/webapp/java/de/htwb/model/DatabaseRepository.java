@@ -45,6 +45,7 @@ public class DatabaseRepository {
         {
             connection.close();
             connection = null;
+            System.out.println("Database connection closed.");
         }
     }
 
