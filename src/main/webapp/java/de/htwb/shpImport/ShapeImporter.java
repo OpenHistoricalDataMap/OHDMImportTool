@@ -2,10 +2,10 @@ package de.htwb.shpImport;
 
 import javax.servlet.http.Part;
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.sql.SQLException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -34,10 +34,10 @@ public class ShapeImporter
 
     public String importFile(File zipFile, String userName) throws Exception
     {
-        unzipFile(zipFile);
+        List unzipFiles = unzipFile(zipFile);
+        String shapeFilesPath = checkShapeFilesAndReturnFilepath(unzipFiles);
 
-
-        File sqlFile = createSQLImportFile(zipFile);
+        File sqlFile = createSQLImportFile(shapeFilesPath);
         if(sqlFile == null)
             return null;
 
@@ -87,16 +87,12 @@ public class ShapeImporter
         return targetFile;
     }
 
-    private File createSQLImportFile(File zipFile) throws IOException
+    private File createSQLImportFile(String path) throws IOException
     {
-        long milliseconds = System.currentTimeMillis();
-        Random rnd = new Random();
-        int rndNumber = Math.abs(rnd.nextInt());
+        String tableName =  DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss").format(LocalDateTime.now());
 
-        String tableName = String.format("%d%d", rndNumber, milliseconds);
-        String shpImportCmd = String.format("\"%s\" \"%s\" \"temp\".\"%s\"", SHP_TO_PGSQL_FILE_PATH, zipFile.getAbsolutePath(), tableName);
+        Process pr = new ProcessBuilder(SHP_TO_PGSQL_FILE_PATH, path, SCHEME_TEMP +"."+tableName).start();
 
-        Process pr = new ProcessBuilder(shpImportCmd).start();
         File importFile;
 
         try(BufferedReader br = new BufferedReader(new InputStreamReader(pr.getInputStream())))
@@ -133,8 +129,7 @@ public class ShapeImporter
 
     private void importShapeIntoDb(File importFile) throws Exception
     {
-        String sqlImportCommand = String.format("\"%s\" -d \"%s\" -U \"%s\" -h \"%s\" -f \"%s\"", PGSQL_FILE_PATH, "ohdm_test", "geoserver", "ohdm.f4.htw-berlin.de", importFile.getAbsolutePath());
-        Process pr = new ProcessBuilder(sqlImportCommand).start();
+        Process pr = new ProcessBuilder(PGSQL_FILE_PATH, "-d", DB_NAME,"-U", DB_USER, "-h", DB_HOST, "-f", importFile.getAbsolutePath()).start();
 
         pr.waitFor();
         try(BufferedReader brErr = new BufferedReader(new InputStreamReader(pr.getErrorStream())))
@@ -147,14 +142,16 @@ public class ShapeImporter
         }
     }
 
-    private void unzipFile(File zipFile) throws IOException
+    private List unzipFile(File zipFile) throws IOException
     {
+        List<File> unzippedFiles = new ArrayList<>();
         ZipInputStream zis = new ZipInputStream(new FileInputStream(zipFile));
         ZipEntry zipEntry;
         byte[] buffer = new byte[BUFFER_SIZE];
         while((zipEntry = zis.getNextEntry()) != null)
         {
             File newFile = new File(zipFile.getParent(), zipEntry.getName());
+            unzippedFiles.add(newFile);
             try(FileOutputStream fops = new FileOutputStream(newFile))
             {
                 int len;
@@ -167,6 +164,7 @@ public class ShapeImporter
 
         zis.closeEntry();
         zis.close();
+        return unzippedFiles;
     }
 
     private void cleanUp(File zipFile, File sqlFile) throws Exception
@@ -175,5 +173,25 @@ public class ShapeImporter
         dbRepos.dropTable(FilenameUtils.getBaseName(sqlFile.getName()));
         FileUtils.forceDelete(sqlFile);
         dbRepos.disconnect();
+    }
+
+    private String checkShapeFilesAndReturnFilepath(List<File> files) throws Exception {
+
+        List<String> filenames = new ArrayList<>();
+
+        for(File file : files){
+            if(FilenameUtils.getExtension(file.getName()).equals("shp")){
+                filenames.add(file.getAbsolutePath().substring(0, file.getAbsolutePath().lastIndexOf('.')));
+            } else if(FilenameUtils.getExtension(file.getName()).equals("shx")) {
+                filenames.add(file.getAbsolutePath().substring(0, file.getAbsolutePath().lastIndexOf('.')));
+            } else if (FilenameUtils.getExtension(file.getName()).equals("dbf")) {
+                filenames.add(file.getAbsolutePath().substring(0, file.getAbsolutePath().lastIndexOf('.')));
+            }
+        }
+        if (filenames.size() == 3 && filenames.stream().distinct().count() == 1) {
+            return filenames.get(0);
+        } else {
+            throw new Exception("The zip file does not contain the necessary shape files (.shp, .shx, .dbf), or they do not have the same name!");
+        }
     }
 }
