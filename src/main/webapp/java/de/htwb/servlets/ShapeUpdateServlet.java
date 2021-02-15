@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 
 @WebServlet("/ShapeUpdate")
@@ -49,7 +50,7 @@ public class ShapeUpdateServlet extends HttpServlet
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
     {
-        try
+       try
         {
             DatabaseRepository dbRepos = new DatabaseRepository();
             dbRepos.connect();
@@ -62,6 +63,7 @@ public class ShapeUpdateServlet extends HttpServlet
             String json = gson.toJson(importResult);
             response.setHeader("content-type", "text/json");
             response.getWriter().write(json);
+
             dbRepos.disconnect();
         }
         catch (Exception ex)

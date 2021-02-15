@@ -111,6 +111,24 @@ public class DatabaseRepository {
             Polygon[] polygons = getPolygonsForId(tableName, id).toArray(new Polygon[polygonList.size()]);
             return new ImportedShape(id, name, validSince, validUntil, polygons);
         }
+       /*
+        final String sql = String.format("SELECT * FROM \"%s\".\"%s\" WHERE gid = ?", SCHEME_TEMP,  tableName);
+
+        PreparedStatement ps = connection.prepareStatement(sql);
+        ps.setInt(1, id);
+
+        try(ResultSet rs = ps.executeQuery())
+        {
+            if(!rs.next())
+                return null;
+
+            int gid = rs.getInt(1);
+            String country = rs.getString(2);
+            String geom = rs.getString(3);
+            ArrayList<Polygon> polygonList = getPolygonsForId(tableName, id);
+            Polygon[] polygons = getPolygonsForId(tableName, id).toArray(new Polygon[polygonList.size()]);
+            return new ImportedShape(  gid, country, geom, polygons);
+        }*/
     }
 
     private ImportedShape getImportedShapeFromCache(String tableName, int id) throws SQLException
@@ -352,7 +370,7 @@ public class DatabaseRepository {
                 ");\n" +
                 "\n" +
                 "ALTER TABLE \""+SCHEME_CACHE+"\".\"%s\"\n" +
-                "    OWNER to geoserver;", tableName, tableName);
+                "    OWNER to "+DB_GEO_USER+";", tableName, tableName);
 
         PreparedStatement ps = connection.prepareStatement(sql);
 

@@ -23,6 +23,7 @@ public class ShapeImporter
     private final File uploadedFilesDir = new File("uploaded");
     private final File importFilesDir = new File("importFiles");
 
+
     private DatabaseRepository dbRepos;
 
     public ShapeImporter()
@@ -49,7 +50,8 @@ public class ShapeImporter
         //dbRepos.insertImportedShapes(shapes);
 
         //cleanUp(zipFile, sqlFile);
-        return tableName;
+
+        return TABLENAME=tableName;
     }
 
     public ArrayList<ImportedShape> getImportedShapesFromTable(String tableName) throws Exception
@@ -89,7 +91,7 @@ public class ShapeImporter
 
     private File createSQLImportFile(String path) throws IOException
     {
-        String tableName =  DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss").format(LocalDateTime.now());
+        String tableName =  DateTimeFormatter.ofPattern("yyyyMMddHHmmss").format(LocalDateTime.now()); //"yyyyMMdd-HHmmss"
 
         Process pr = new ProcessBuilder(SHP_TO_PGSQL_FILE_PATH, path, SCHEME_TEMP +"."+tableName).start();
 
@@ -104,7 +106,6 @@ public class ShapeImporter
             {
                 sb.append(line);
             }
-
             String importOutput = sb.toString();
 
             importFile = new File("importFiles/" + tableName + ".sql");
@@ -129,7 +130,8 @@ public class ShapeImporter
 
     private void importShapeIntoDb(File importFile) throws Exception
     {
-        Process pr = new ProcessBuilder(PGSQL_FILE_PATH, "-d", DB_NAME,"-U", DB_USER, "-h", DB_HOST, "-f", importFile.getAbsolutePath()).start();
+
+        Process pr = new ProcessBuilder(PGSQL_FILE_PATH, "-d", DB_NAME,"-U", DB_USER, "-h", DB_HOST,"-f", importFile.getAbsolutePath()).start();
 
         pr.waitFor();
         try(BufferedReader brErr = new BufferedReader(new InputStreamReader(pr.getErrorStream())))

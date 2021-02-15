@@ -2,6 +2,7 @@ package de.htwb.servlets;
 
 import com.google.gson.Gson;
 import de.htwb.model.imported.ImportedShape;
+import de.htwb.shpImport.OhdmLoader;
 import de.htwb.shpImport.ShapeImporter;
 import de.htwb.utils.ImportResult;
 
@@ -20,11 +21,14 @@ import java.util.ArrayList;
 public class ShapeImportServlet extends HttpServlet {
 
     private ShapeImporter shapeImporter;
-
+    private OhdmLoader ohdmLoader;
+    public String startDate;
+    public String endDate;
     @Override
     public void init() throws ServletException {
         super.init();
         shapeImporter = new ShapeImporter();
+        ohdmLoader = new OhdmLoader();
     }
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
@@ -33,8 +37,13 @@ public class ShapeImportServlet extends HttpServlet {
         {
             File shapefile = shapeImporter.saveUploadedPartToFile(request.getPart("shapefile"));
             String userName = request.getParameter("userName");
+             startDate = request.getParameter("startDate");
+             endDate = request.getParameter("endDate");
+            String classificationId = request.getParameter("classificationId");
+
             String tableName = shapeImporter.importFile(shapefile, userName);
             ArrayList<ImportedShape> importedShapes = shapeImporter.getImportedShapesFromTable(tableName);
+            ohdmLoader.importFromIntermediateIntoOhdm();
             response.sendRedirect("ShapeUpdate.html?tableKey="+tableName);
 
         }

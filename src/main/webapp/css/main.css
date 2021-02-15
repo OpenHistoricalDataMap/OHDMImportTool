@@ -1,10 +1,54 @@
 body {
     background-color: dimgrey;
     color: white;
+    font-size: 25px;
 }
+#main {
+    width: 60em;
+    margin: 6em auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #e2e2e2;
+    padding: 2em;
+    min-height:100% ;
+}
+
+* {
+    transition: all .2s ease;
+}
+.extra-info {
+    display: none;
+    line-height: 30px;
+    font-size: 25px;
+    top: 0;
+    left: 50px;
+}
+
+.info:hover .extra-info {
+    display: block;
+}
+
+.info {
+    font-size: 25px;
+    padding-left: 5px;
+    width: 30px;
+    border-radius: 15px;
+}
+
+.info:hover {
+    background-color: white;
+    padding: 0 0 0 5px;
+    width: 315px;
+    text-align: left !important;
+}
+label{
+    width: 100px;
+}
+
 @media screen and (prefers-color-scheme: light) {
     body {
-        background-color: white;
+        background-color: dodgerblue;
         color: black;
     }
 }

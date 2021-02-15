@@ -15,6 +15,11 @@ public class ImportedShape
     private transient Polygon[] polygons;
     private String geoJson;
 
+
+    //private int id;
+    private String country ;
+    private String geom;
+
     public ImportedShape(int id, String name, Date validSince, Date validUntil, Polygon[] polygons)
     {
         this.id = id;
@@ -23,6 +28,13 @@ public class ImportedShape
         this.validUntil = validUntil;
         this.polygons = polygons;
         this.classificationId = 0;
+    }
+    public ImportedShape(int id, String country, String geom,Polygon[] polygons)
+    {
+        this.id = id;
+        this.country = country;
+        this.geom = geom;
+
     }
 
     public Polygon[] getPolygons() {
