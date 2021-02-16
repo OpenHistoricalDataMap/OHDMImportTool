@@ -2,9 +2,12 @@ package de.htwb.shpImport;
 
 import javax.servlet.http.Part;
 import java.io.*;
+import java.nio.file.Files;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.zip.ZipEntry;
@@ -19,7 +22,7 @@ import static de.htwb.utils.Config.*;
 public class ShapeImporter
 {
     private final int BUFFER_SIZE = 8 * 1024;
-
+    private final File ConfigFileDir = new File("configFiles");
     private final File uploadedFilesDir = new File("uploaded");
     private final File importFilesDir = new File("importFiles");
 
@@ -28,9 +31,152 @@ public class ShapeImporter
 
     public ShapeImporter()
     {
+        ConfigFileDir.mkdir();
         uploadedFilesDir.mkdir();
         importFilesDir.mkdir();
+        LoadConfigs();
+
         dbRepos = new DatabaseRepository();
+    }
+
+    private void LoadConfigs() {
+        try {
+
+            File file = new File("configFiles\\GenConfigs");
+
+            if (file.createNewFile()){
+               String[] GenConfigs={
+                       "DB_USER = postgres",
+                       "DB_PASS = root",
+                       "DB_NAME = ohdm",
+                       "DB_HOST = localhost",
+                       "SCHEME_TEMP = temp",
+                       "SCHEME_TEST = test",
+                       "SCHEME_CACHE = intermediateosm",
+                       "DB_GEO_USER=geoserver",
+                        /*STEP 2*/
+                       "DB_HOST_OHDM = localhost",
+                       "DB_PORT_OHDM = 5432",
+                       "DB_USER_OHDM = postgres",
+                       "DB_PASS_OHDM = root",
+                        //Intermediate
+                       "DB_NAME_INTERMEDIATE =ohdm",
+                        //ohdm
+                       "DB_NAME_OHDM = ohdm",
+                       "SCHEME_OHDM = ohdm",
+                       "SCHEME_INTERMEDIATE = intermediateosm",
+                       "GID=gid",
+                       "GEOM=geom",
+                       "VALIDSINCE=12-04-1999",
+                       "VALIDUNTIL=12-04-2022",
+                       "CLASSIFICATION_ID=13",
+                       "JDBC_DRIVER_PATH= C:\\dev\\ohdm\\postgresql-42.1.1.jar",
+                       "OHDM_CONVERTER_PATH=C:\\dev\\ohdm\\OHDMConverter.jar",
+                       "TABLENAME=''",
+                       "SHP_TO_PGSQL_FILE_PATH = C:\\Program Files\\PostgreSQL\\9.6\\bin\\shp2pgsql.exe",
+                       "PGSQL_FILE_PATH = C:\\Program Files\\PostgreSQL\\9.6\\bin\\psql.exe",
+               };
+                Files.write(file.toPath(), Arrays.asList(GenConfigs));
+
+            }
+
+            List<String> fileLines = Files.readAllLines(file.toPath());
+
+            for (String Param:fileLines)
+                {
+                    String[] KeyValue= Param.split("=");
+                    String VarKey= KeyValue[0].trim();
+                    String VarValue= KeyValue[1].trim();
+                switch (VarKey){
+
+                    case "DB_USER":
+                        DB_USER = VarValue;
+                        break;
+                    case "DB_PASS":
+                        DB_PASS = VarValue;
+                        break;
+                    case "DB_NAME":
+                        DB_NAME = VarValue;
+                        break;
+                    case "DB_HOST":
+                        DB_HOST = VarValue;
+                        break;
+                    case "SCHEME_TEMP":
+                        SCHEME_TEMP = VarValue;
+                        break;
+                    case "SCHEME_TEST":
+                        SCHEME_TEST = VarValue;
+                        break;
+                    case "SCHEME_CACHE":
+                        SCHEME_CACHE = VarValue;
+                        break;
+                    case "DB_GEO_USER":
+                        DB_GEO_USER = VarValue;
+                        break;
+                    case "DB_HOST_OHDM":
+                        DB_HOST_OHDM = VarValue;
+                        break;
+                    case "DB_PORT_OHDM":
+                        DB_PORT_OHDM = VarValue;
+                        break;
+                    case "DB_USER_OHDM":
+                        DB_USER_OHDM = VarValue;
+                        break;
+                    case "DB_PASS_OHDM":
+                        DB_PASS_OHDM = VarValue;
+                        break;
+                    case "DB_NAME_INTERMEDIATE":
+                        DB_NAME_INTERMEDIATE = VarValue;
+                        break;
+                    case "DB_NAME_OHDM":
+                        DB_NAME_OHDM = VarValue;
+                        break;
+                    case "SCHEME_OHDM":
+                        SCHEME_OHDM = VarValue;
+                        break;
+                    case "SCHEME_INTERMEDIATE":
+                        SCHEME_INTERMEDIATE = VarValue;
+                        break;
+                    case "GID":
+                        GID = VarValue;
+                        break;
+                    case "GEOM":
+                        GEOM = VarValue;
+                        break;
+                    case "VALIDSINCE":
+                        VALIDSINCE = VarValue;
+                        break;
+                    case "VALIDUNTIL":
+                        VALIDUNTIL = VarValue;
+                        break;
+                    case "CLASSIFICATION_ID":
+                        CLASSIFICATION_ID = VarValue;
+                        break;
+                    case "JDBC_DRIVER_PATH":
+                        JDBC_DRIVER_PATH = VarValue;
+                        break;
+                    case "OHDM_CONVERTER_PATH":
+                        OHDM_CONVERTER_PATH = VarValue;
+                        break;
+                    case "TABLENAME":
+                        TABLENAME = VarValue;
+                        break;
+                    case "SHP_TO_PGSQL_FILE_PATH":
+                        SHP_TO_PGSQL_FILE_PATH = VarValue;
+                        break;
+                    case "PGSQL_FILE_PATH":
+                        PGSQL_FILE_PATH = VarValue;
+                        break;
+
+                }
+
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
     }
 
     public String importFile(File zipFile, String userName) throws Exception

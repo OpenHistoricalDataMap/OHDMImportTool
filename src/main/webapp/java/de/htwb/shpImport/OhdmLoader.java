@@ -10,17 +10,19 @@ public class OhdmLoader {
     private final File ConfigFileDir = new File("configFiles");
     public OhdmLoader()
     {
-        ConfigFileDir.mkdir();
+
     }
+
     public void importFromIntermediateIntoOhdm() throws Exception
     {
-        CreateStep2Schema();
+
         CreateConfigFiles();
+        CreateStep2Schema();
 
         ProcessBuilder processBuilder = new ProcessBuilder();
         // Windows
         String dir=ConfigFileDir.getAbsolutePath();
-        String cmd="java -classpath "+ JDBC_DRIVER_PATH+" -jar "+OHDM_CONVERTER_PATH +" -h \""+dir+"\\historic_import_parameter\" -d \""+dir+"\\ohdm_parameter\"";
+        String cmd="java -classpath "+JDBC_DRIVER_PATH+" -jar "+OHDM_CONVERTER_PATH +" -h \""+dir+"\\db_ohdm_historic_local\" -d \""+dir+"\\db_shape_import\"";
         Process pr =processBuilder.command("cmd.exe", "/c", cmd).start();
 
        pr.waitFor();
@@ -36,7 +38,7 @@ public class OhdmLoader {
     }
     private void CreateStep2Schema() throws Exception
     {
-        String SqlCmd=" CREATE SCHEMA IF NOT EXISTS intermediateosm; CREATE SCHEMA IF NOT EXISTS ohdm;";
+        String SqlCmd=" CREATE SCHEMA IF NOT EXISTS "+SCHEME_INTERMEDIATE+"; CREATE SCHEMA IF NOT EXISTS "+SCHEME_OHDM+";";
 
         Process pr = new ProcessBuilder(PGSQL_FILE_PATH, "-d", DB_NAME,"-U", DB_USER, "-h", DB_HOST,"-c", SqlCmd).start();
 
@@ -72,10 +74,10 @@ public class OhdmLoader {
                 "\nvalidSince:"+ VALIDSINCE+
                 "\nvalidUntil:"+ VALIDUNTIL+
                 "\nclassificationID:"+ CLASSIFICATION_ID;
-        PrintWriter writer = new PrintWriter("configFiles/ohdm_parameter", "UTF-8");
+        PrintWriter writer = new PrintWriter("configFiles/db_shape_import", "UTF-8");
         writer.println(OHDM_PARAMETER);
         writer.close();
-        writer = new PrintWriter("configFiles/historic_import_parameter", "UTF-8");
+        writer = new PrintWriter("configFiles/db_ohdm_historic_local", "UTF-8");
         writer.println(HISTORIC_IMPORT_PARAMETER);
         writer.close();
     }
