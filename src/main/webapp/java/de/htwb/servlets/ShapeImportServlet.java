@@ -18,7 +18,6 @@ import java.util.ArrayList;
 public class ShapeImportServlet extends HttpServlet {
 
     private ShapeImporter shapeImporter;
-    private OhdmLoader ohdmLoader;
     public String startDate;
     public String endDate;
     @Override
@@ -27,7 +26,6 @@ public class ShapeImportServlet extends HttpServlet {
         shapeImporter = new ShapeImporter();
         shapeImporter.CreateConfigs();
         shapeImporter.LoadConfigs();
-       // ohdmLoader = new OhdmLoader();
     }
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
@@ -44,7 +42,6 @@ public class ShapeImportServlet extends HttpServlet {
             String tableName = shapeImporter.importFile(shapefile, userName);
             shapeImporter.CreateConfigs();
             ArrayList<ImportedShape> importedShapes = shapeImporter.getImportedShapesFromTable(tableName);
-           // ohdmLoader.importFromIntermediateIntoOhdm();
             response.sendRedirect("ShapeUpdate.html?tableKey="+tableName);
 
         }
