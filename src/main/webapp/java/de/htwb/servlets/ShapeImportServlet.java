@@ -1,9 +1,7 @@
 package de.htwb.servlets;
 
-import com.google.gson.Gson;
 import de.htwb.model.imported.ImportedShape;
 import de.htwb.shpImport.ShapeImporter;
-import de.htwb.utils.ImportResult;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
@@ -20,20 +18,29 @@ import java.util.ArrayList;
 public class ShapeImportServlet extends HttpServlet {
 
     private ShapeImporter shapeImporter;
-
+    public String startDate;
+    public String endDate;
     @Override
     public void init() throws ServletException {
         super.init();
         shapeImporter = new ShapeImporter();
+        shapeImporter.CreateConfigs();
+        shapeImporter.LoadConfigs();
     }
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
     {
         try
         {
+
             File shapefile = shapeImporter.saveUploadedPartToFile(request.getPart("shapefile"));
             String userName = request.getParameter("userName");
+            // startDate = request.getParameter("startDate");
+            // endDate = request.getParameter("endDate");
+            //String classificationId = request.getParameter("classificationId");
+
             String tableName = shapeImporter.importFile(shapefile, userName);
+            shapeImporter.CreateConfigs();
             ArrayList<ImportedShape> importedShapes = shapeImporter.getImportedShapesFromTable(tableName);
             response.sendRedirect("ShapeUpdate.html?tableKey="+tableName);
 

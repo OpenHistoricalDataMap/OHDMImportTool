@@ -9,33 +9,83 @@ public class ImportedShape
     private int id;
     private String name;
     private Date validSince;
+    private int validSinceDay;
+    private int validSinceMonth;
+    private int validSinceYear;
     private Date validUntil;
+    private int validUntilDay;
+    private int validUntilMonth;
+    private int validUntilYear;
     private int classificationId;
     private String username;
     private transient Polygon[] polygons;
     private String geoJson;
 
-    public ImportedShape(int id, String name, Date validSince, Date validUntil, Polygon[] polygons)
+
+    //private int id;
+    private String country ;
+    private String geom;
+
+    public ImportedShape(int id, String name, Date validSince, int validUntilYear, Polygon[] polygons)
     {
         this.id = id;
         this.name = name;
         this.validSince = validSince;
-        this.validUntil = validUntil;
+        this.validUntilYear = validUntilYear;
         this.polygons = polygons;
         this.classificationId = 0;
+    }
+    public ImportedShape(int id, String name, Date validSince,  int validSinceDay
+            , int validSinceMonth
+            , int validSinceYear
+            , Date validUntil
+            , int validUntilDay
+            , int validUntilMonth
+            , int validUntilYear, Polygon[] polygons)
+    {
+        this.id = id;
+        this.name = name;
+        this.validSince = validSince;
+        this.validSinceDay = validSinceDay;
+        this.validSinceMonth = validSinceMonth;
+        this.validSinceYear = validSinceYear;
+        this.validUntil = validUntil;
+        this.validUntilDay = validUntilDay;
+        this.validUntilMonth = validUntilMonth;
+        this.validUntilYear = validUntilYear;
+        this.polygons = polygons;
+        this.classificationId = 0;
+    }
+    public ImportedShape(int id, String country, String geom,Polygon[] polygons)
+    {
+        this.id = id;
+        this.country = country;
+        this.geom = geom;
+
     }
 
     public Polygon[] getPolygons() {
         return polygons;
     }
 
+    public Date getValidSince() { return validSince; }
+    public int getValidSinceDay() { return validSinceDay; }
+    public int getValidSinceMonth() { return validSinceMonth; }
+    public int getValidSinceYear() { return validSinceYear; }
+
     public Date getValidUntil() {
         return validUntil;
     }
-
-    public Date getValidSince() {
-        return validSince;
+    public int getValidUntilDay() {
+        return validUntilDay;
     }
+    public int getValidUntilMonth() {
+        return validUntilMonth;
+    }
+    public int getValidUntilYear() {
+    return validUntilYear;
+}
+
 
     public String getName() {
         return name;

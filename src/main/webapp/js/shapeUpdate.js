@@ -29,7 +29,7 @@ function getOHDMInformation()
 
             console.log(dataObj);
 
-            classificationDropDown = document.createElement("select");
+            //classificationDropDown = document.createElement("select");
 
 
             for(let i = 0; i < dataObj.length; i++)
@@ -39,7 +39,7 @@ function getOHDMInformation()
 
                 currentOption.value = currentData.id;
                 currentOption.text = currentData.subclassName;
-                classificationDropDown.append(currentOption);
+                //classificationDropDown.append(currentOption);
             }
         }
     };
@@ -51,7 +51,7 @@ function sendData()
 {
     let key = $("#key").val();
     let xhr = new XMLHttpRequest();
-    let url = baseUrl + "ShapeUpdate?tableKey="+key;
+    let url = baseUrl + "ShapeUpdate.html?tableKey="+key;
 
     xhr.open("GET", url, true);
 
@@ -102,7 +102,8 @@ function displayImportedShapes(importedShapes)
     {
         let id = importedShapes[i].id;
         let name = importedShapes[i].name;
-        let validSince, validUntil = "";
+        let validSince= "";
+        let validUntil ="";
         if(importedShapes[i].validSince)
         {
             validSince = getDate(importedShapes[i].validSince);
@@ -118,34 +119,38 @@ function displayImportedShapes(importedShapes)
 
         let shapeId = "Shape-" + id;
         let mapId = "map-"+shapeId;
-        classificationDropDown.setAttribute("id", "class" + i);
+        //classificationDropDown.setAttribute("id", "class" + i);
         let importedShapeForm =
-        $("<form id=\""+ i +"\">" +
-            "<div class='form-group row'>" +
+            $("<form id=\""+ i +"\">" +
+                "<div class='form-group row'>" +
                 "<label>ID</label>" +
                 "<input type='text' readonly value=\""+id+"\"/>" +
-            "</div>" +
-            "<div class='form-group row'>" +
+                "<div class='info'><i class=\"icon-info-sign\"></i><span class='extra-info'>Hier handelt es sich um das ID der Shapefile </span></div>"+
+                "</div>" +
+                "<div class='form-group row'>" +
                 "<label>Name</label>" +
                 "<input type='text' value=\""+name+"\" id=\"name"+i+"\"/>" +
-            "</div>" +
-            "<div class='form-group row'>" +
+                "<div class='info'><i class=\"icon-info-sign\"></i><span class='extra-info'>Hier handelt es sich um der Name der Shapefile </span></div>"+
+                "</div>" +
+                "<div class='form-group row'>" +
                 "<label>Gültig von...</label>" +
                 "<input type='date' value=\""+validSince+"\" id=\"validSince"+i+"\"/>" +
-            "</div>" +
-            "<div class='form-group row'>" +
+                "<div class='info'><i class=\"icon-info-sign\"></i><span class='extra-info'>Hier handelt es sich um das Startdatum der Gültigkeit der Shapefile </span></div>"+
+                "</div>" +
+                "<div class='form-group row'>" +
                 "<label>Gültig bis...</label>" +
                 "<input type='date' value=\""+validUntil+"\" id=\"validUntil"+i+"\"/>" +
-            "</div>" +
-            "<div class='form-group row'>" +
-                "<label>Klassifizierung</label>" +
-                classificationDropDown.outerHTML +
-            "</div>" +
-            "<div id=\""+mapId+"\" class=\"map\">"+
+                "<div class='info'><i class=\"icon-info-sign\"></i><span class='extra-info'>Hier handelt es sich um das Enddatum der Gültigkeit der Shapefile </span></div>"+
+                "</div>" +
+                "<div class='form-group row'>" +
+                //"<label>Klassifizierung</label>" +
 
-            "</div>"+
-            "<button type=\"button\" class=\"btn btn-primary\" id=\"update"+ shapeId +"\">Update</button>" +
-        "</form><hr>");
+                "</div>" +
+                "<div id=\""+mapId+"\" class=\"map\">"+
+
+                "</div>"+
+                "<button type=\"button\" class=\"btn btn-primary\" id=\"update"+ shapeId +"\">Update</button>" +
+                "</form><hr>");
 
         $("#importedShapes").append(importedShapeForm);
         $("#update"  + shapeId).click(function() {
@@ -153,21 +158,20 @@ function displayImportedShapes(importedShapes)
         });
 
         var geojsonObject =
-        {
-            "type": "FeatureCollection",
-            "crs": {
-                "type": "name",
-                "properties": {
-                    "name": "EPSG:4326"
-                }
-            },
-            "features": [{"type":"Feature", "properties":{}, "geometry": geoJsonObj }]
-        };
+            {
+                "type": "FeatureCollection",
+                "crs": {
+                    "type": "name",
+                    "properties": {
+                        "name": "EPSG:4326"
+                    }
+                },
+                "features": [{"type":"Feature", "properties":{}, "geometry": geoJsonObj }]
+            };
 
         let vectorSource = new ol.source.Vector({
             features: (new ol.format.GeoJSON()).readFeatures(geojsonObject)
         });
-
 
         let vectorLayer = new ol.layer.Vector({
             source: vectorSource
