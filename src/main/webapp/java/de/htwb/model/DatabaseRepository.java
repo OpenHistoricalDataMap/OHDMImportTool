@@ -95,21 +95,39 @@ public class DatabaseRepository {
 
     private ImportedShape getImportedShapeForId(String tableName, int id) throws SQLException
     {
-        final String sql = String.format("SELECT name, start_date, end_date FROM \"%s\".\"%s\" WHERE gid = ?", SCHEME_TEMP,  tableName);
+
+
+        //adding start_day, start_month, start_year
+        final String sql_add_cols = String.format("ALTER TABLE \"%s\".\"%s\" ADD COLUMN IF NOT EXISTS start_day integer, " +
+                "ADD COLUMN IF NOT EXISTS start_month integer, ADD COLUMN IF NOT EXISTS start_year integer, " +
+                "ADD COLUMN IF NOT EXISTS end_day integer, ADD COLUMN IF NOT EXISTS end_month integer, " +
+                        "ADD COLUMN IF NOT EXISTS end_year integer", SCHEME_TEMP,  tableName);
+        PreparedStatement ps_cols = connection.prepareStatement(sql_add_cols);
+        ps_cols.executeUpdate();
+
+
+        final String sql = String.format("SELECT name, start_date, start_day, start_month, start_year, end_date, end_day, " +
+                "end_month, end_year FROM \"%s\".\"%s\" WHERE gid = ?", SCHEME_TEMP,  tableName);
         PreparedStatement ps = connection.prepareStatement(sql);
         ps.setInt(1, id);
 
         try(ResultSet rs = ps.executeQuery())
         {
-            if(!rs.next())
-                return null;
+            if(!rs.next())  return null;
 
             String name = rs.getString(1);
             Date validSince = rs.getDate(2);
-            Date validUntil = rs.getDate(3);
+            int columnValidSinceDay = rs.getInt(3);
+            int columnValidSinceMonth = rs.getInt(4);
+            int columnValidSinceYear = rs.getInt(5);
+            Date validUntil = rs.getDate(6);
+            int columnValidUntilDay = rs.getInt(7);
+            int columnValidUntilMonth = rs.getInt(8);
+            int columnValidUntilYear = rs.getInt(9);
             ArrayList<Polygon> polygonList = getPolygonsForId(tableName, id);
             Polygon[] polygons = getPolygonsForId(tableName, id).toArray(new Polygon[polygonList.size()]);
-            return new ImportedShape(id, name, validSince, validUntil, polygons);
+            return new ImportedShape(id, name, validSince, columnValidSinceDay, columnValidSinceMonth, columnValidSinceYear,
+                    validUntil, columnValidUntilDay, columnValidUntilMonth, columnValidUntilYear, polygons);
         }
        /*
         final String sql = String.format("SELECT * FROM \"%s\".\"%s\" WHERE gid = ?", SCHEME_TEMP,  tableName);
@@ -133,7 +151,9 @@ public class DatabaseRepository {
 
     private ImportedShape getImportedShapeFromCache(String tableName, int id) throws SQLException
     {
-        final String sql = String.format("SELECT \"name\", \"validSince\", \"validUntil\", \"geom\", ST_ASGEOJSON(geom) FROM \"%s\".\"%s\" WHERE gid = ?", SCHEME_CACHE, tableName);
+        final String sql = String.format("SELECT \"name\", \"validSince\", \"validSinceDay\", \"validSinceMonth\", " +
+                "\"validSinceYear\",\"validUntil\", \"validUntilDay\", \"validUntilMonth\", \"validUntilYear\", " +
+                "\"geom\", ST_ASGEOJSON(geom) FROM \"%s\".\"%s\" WHERE gid = ?", SCHEME_CACHE, tableName);
         PreparedStatement ps = connection.prepareStatement(sql);
         ps.setInt(1, id);
 
@@ -144,12 +164,19 @@ public class DatabaseRepository {
 
             String name = rs.getString(1);
             Date validSince = rs.getDate(2);
-            Date validUntil = rs.getDate(3);
-            PGgeometry geom = (PGgeometry) rs.getObject(4);
+            int columnValidSinceDay = rs.getInt(3);
+            int columnValidSinceMonth = rs.getInt(4);
+            int columnValidSinceYear = rs.getInt(5);
+            Date validUntil = rs.getDate(6);
+            int columnValidUntilDay = rs.getInt(7);
+            int columnValidUntilMonth = rs.getInt(8);
+            int columnValidUntilYear = rs.getInt(9);
+            PGgeometry geom = (PGgeometry) rs.getObject(10);
             MultiPolygon multiPolygon = new MultiPolygon(geom.getGeometry().getValue());
             Polygon[] polygons = multiPolygon.getPolygons();
-            ImportedShape is = new ImportedShape(id, name, validSince, validUntil, polygons);
-            is.setGeoJson(rs.getString(5));
+            ImportedShape is = new ImportedShape(id, name, validSince, columnValidSinceDay, columnValidSinceMonth, columnValidSinceYear,
+                    validUntil, columnValidUntilDay, columnValidUntilMonth, columnValidUntilYear, polygons);
+            is.setGeoJson(rs.getString(11));
             return is;
         }
     }
@@ -157,7 +184,8 @@ public class DatabaseRepository {
     private ArrayList<Polygon> getPolygonsForId(String tableName, int id) throws SQLException
     {
         ArrayList<Polygon> polygons = new ArrayList<>();
-        final String sql = String.format("SELECT ST_GeometryN(geom, generate_series(1, ST_NumGeometries(geom)))  FROM %s.\"%s\" WHERE gid = ?", SCHEME_TEMP, tableName);
+        final String sql = String.format("SELECT ST_GeometryN(geom, generate_series(1, ST_NumGeometries(geom))) " +
+                " FROM %s.\"%s\" WHERE gid = ?", SCHEME_TEMP, tableName);
         PreparedStatement stmtPolygons = connection.prepareStatement(sql);
         stmtPolygons.setInt(1, id);
 
@@ -207,7 +235,8 @@ public class DatabaseRepository {
         return geoobject;
     }
 
-    private ArrayList<GeoobjectGeometry> getGeoobjectGeometries(ImportedShape importedShape, Geoobject geoobject, ArrayList<OHDMPolygon> OHDMPolygons)
+    private ArrayList<GeoobjectGeometry> getGeoobjectGeometries(ImportedShape importedShape, Geoobject geoobject,
+                                                                ArrayList<OHDMPolygon> OHDMPolygons)
     {
         ArrayList<GeoobjectGeometry> geoobjectGeometries = new ArrayList<>();
 
@@ -275,7 +304,9 @@ public class DatabaseRepository {
 
     private void insertGeoobjectGeometry(GeoobjectGeometry geoobjectGeometry) throws SQLException
     {
-        final String sql = String.format("INSERT INTO %s.\"geoobject_geometry\" (id_target, type_target, id_geoobject_source, classification_id, valid_since, valid_until, source_user_id) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id", SCHEME_TEST);
+        final String sql = String.format("INSERT INTO %s.\"geoobject_geometry\" (id_target, type_target, id_geoobject_source, " +
+                "classification_id, valid_since, valid_since_day, valid_since_month, valid_since_year, valid_until, " +
+                "valid_until_day, valid_until_month, valid_until_year, source_user_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id", SCHEME_TEST);
         PreparedStatement stmt = connection.prepareStatement(sql);
         stmt.setLong(1, geoobjectGeometry.getIdTarget());
         stmt.setLong(2, geoobjectGeometry.getIdTargetType());
@@ -287,12 +318,43 @@ public class DatabaseRepository {
         else
             stmt.setNull(5, Types.DATE);
 
-        if(geoobjectGeometry.getValidUntil() != null)
-            stmt.setDate(6, new java.sql.Date(geoobjectGeometry.getValidUntil().getTime()));
+        if(geoobjectGeometry.getValidSinceDay() > 0)
+            stmt.setInt(6, geoobjectGeometry.getValidSinceDay());
         else
-            stmt.setDate(6, new Date(0));
+            stmt.setNull(6, Types.INTEGER);
 
-        stmt.setLong(7, geoobjectGeometry.getIdSourceUser());
+        if(geoobjectGeometry.getValidSinceMonth() > 0)
+            stmt.setInt(7, geoobjectGeometry.getValidSinceMonth());
+        else
+            stmt.setNull(7, Types.INTEGER);
+
+        if(geoobjectGeometry.getValidSinceYear() > 0)
+            stmt.setInt(8,geoobjectGeometry.getValidSinceYear());
+        else
+            stmt.setNull(8, Types.INTEGER);
+
+
+        if(geoobjectGeometry.getValidUntil() != null)
+            stmt.setDate(9, new java.sql.Date(geoobjectGeometry.getValidUntil().getTime()));
+        else
+            stmt.setDate(9, new Date(0));
+
+        if(geoobjectGeometry.getValidUntilDay() > 0)
+            stmt.setInt(10, geoobjectGeometry.getValidUntilDay());
+        else
+            stmt.setNull(10, Types.INTEGER);
+
+        if(geoobjectGeometry.getValidUntilMonth() > 0)
+            stmt.setInt(11, geoobjectGeometry.getValidUntilMonth());
+        else
+            stmt.setNull(11, Types.INTEGER);
+
+        if(geoobjectGeometry.getValidUntilYear() > 0)
+            stmt.setInt(12,geoobjectGeometry.getValidUntilYear());
+        else
+            stmt.setNull(12, Types.INTEGER);
+
+        stmt.setLong(13, geoobjectGeometry.getIdSourceUser());
 
         if(stmt.execute())
         {
@@ -359,7 +421,13 @@ public class DatabaseRepository {
                 "    gid SERIAL,\n" +
                 "    name character varying(254),\n" +
                 "    \"validSince\" date,\n" +
+                "    \"validSinceDay\" integer,\n" +
+                "    \"validSinceMonth\" integer,\n" +
+                "    \"validSinceYear\" integer,\n" +
                 "    \"validUntil\" date,\n" +
+                "    \"validUntilDay\" integer,\n" +
+                "    \"validUntilMonth\" integer,\n" +
+                "    \"validUntilYear\" integer,\n" +
                 "    \"classId\" integer,\n" +
                 "    username character varying(254),\n" +
                 "    geom geometry,\n" +
@@ -379,7 +447,10 @@ public class DatabaseRepository {
 
     private void insertShapeIntoCache(String tableName, ImportedShape shape, String userName) throws Exception
     {
-        final String sql = String.format("INSERT INTO \""+SCHEME_CACHE+"\".\"%s\" (\"name\", \"validSince\", \"validUntil\", \"classId\", \"username\", \"geom\") VALUES(?, ?, ?, ?, ?, ?)", tableName);
+        final String sql = String.format("INSERT INTO \""+SCHEME_CACHE+"\".\"%s\" (\"name\", " +
+                "\"validSince\",\"validSinceDay\",\"validSinceMonth\",\"validSinceYear\"," +
+                " \"validUntil\",\"validUntilDay\",\"validUntilMonth\",\"validUntilYear\"," +
+                " \"classId\", \"username\", \"geom\") VALUES(?, ?, ?, ?, ?,?,?,?,?,?,?, ?)", tableName);
         PreparedStatement ps = connection.prepareStatement(sql);
 
         if (shape.getName() != null)
@@ -390,30 +461,63 @@ public class DatabaseRepository {
             ps.setDate(2, new java.sql.Date(shape.getValidSince().getTime()));
         else
             ps.setNull(2, Types.DATE);
+        if(shape.getValidSinceDay() >0)
+            ps.setInt(3, shape.getValidSinceDay());
+        else
+            ps.setNull(3, Types.INTEGER);
+        if(shape.getValidSinceMonth() >0)
+            ps.setInt(4,  shape.getValidSinceMonth());
+        else
+            ps.setNull(4, Types.INTEGER);
+        if(shape.getValidSinceYear() >0)
+            ps.setInt(5,  shape.getValidSinceYear() );
+        else
+            ps.setNull(5, Types.INTEGER);
 
         if(shape.getValidUntil() != null)
-            ps.setDate(3, new java.sql.Date(shape.getValidUntil().getTime()));
+            ps.setDate(6, new java.sql.Date(shape.getValidUntil().getTime()));
         else
-            ps.setNull(3, Types.DATE);
+            ps.setNull(6, Types.DATE);
+        if(shape.getValidUntilDay() >0)
+            ps.setInt(7, shape.getValidUntilDay() );
+        else
+            ps.setNull(7, Types.INTEGER);
+        if(shape.getValidUntilMonth()>0)
+            ps.setInt(8,  shape.getValidUntilMonth() );
+        else
+            ps.setNull(8, Types.INTEGER);
+        if(shape.getValidUntilYear() >0)
+            ps.setInt(9,  shape.getValidUntilYear() );
+        else
+            ps.setNull(9, Types.INTEGER);
 
-        ps.setInt(4, shape.getClassificationId());
-        ps.setString(5, userName);
-        ps.setObject(6, new PGgeometry(new MultiPolygon(shape.getPolygons())));
+        ps.setInt(10, shape.getClassificationId());
+        ps.setString(11, userName);
+        ps.setObject(12, new PGgeometry(new MultiPolygon(shape.getPolygons())));
 
         ps.execute();
     }
 
     public void updateImportedShape(ImportedShape updatedImportedShape, String table) throws Exception
     {
-        final String sql = String.format("UPDATE \""+SCHEME_CACHE+"\".\"%s\" SET \"name\" = ?, \"validSince\" = ?, \"validUntil\" = ?, \"classId\" = ? WHERE gid = ?", table);
+        final String sql = String.format("UPDATE \""+SCHEME_CACHE+"\".\"%s\" SET \"name\" = ?, " +
+                "\"validSince\"= ?,\"validSinceDay\"= ?,\"validSinceMonth\"= ?,\"validSinceYear\"= ?," +
+                "\"validUntil\"= ?,\"validUntilDay\"= ?,\"validUntilMonth\"= ?,\"validUntilYear\"= ?," +
+                "\"classId\" = ? WHERE gid = ?", table);
 
         PreparedStatement ps = connection.prepareStatement(sql);
 
         ps.setString(1, updatedImportedShape.getName());
         ps.setDate(2,  new java.sql.Date(updatedImportedShape.getValidSince().getTime()));
-        ps.setDate(3,  new java.sql.Date(updatedImportedShape.getValidUntil().getTime()));
-        ps.setInt(4, updatedImportedShape.getClassificationId());
-        ps.setInt(5, updatedImportedShape.getId());
+        ps.setInt(3, updatedImportedShape.getValidSinceDay());
+        ps.setInt(4, updatedImportedShape.getValidSinceMonth());
+        ps.setInt(5, updatedImportedShape.getValidSinceYear());
+        ps.setDate(6,  new java.sql.Date(updatedImportedShape.getValidUntil().getTime()));
+        ps.setInt(7, updatedImportedShape.getValidUntilDay());
+        ps.setInt(8, updatedImportedShape.getValidUntilMonth());
+        ps.setInt(9, updatedImportedShape.getValidUntilYear());
+        ps.setInt(10, updatedImportedShape.getClassificationId());
+        ps.setInt(11, updatedImportedShape.getId());
 
         ps.executeUpdate();
     }

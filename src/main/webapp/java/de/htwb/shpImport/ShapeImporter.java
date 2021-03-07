@@ -25,60 +25,71 @@ public class ShapeImporter
     private final File ConfigFileDir = new File("configFiles");
     private final File uploadedFilesDir = new File("uploaded");
     private final File importFilesDir = new File("importFiles");
-
+    File file = new File("configFiles\\GenConfigs");
 
     private DatabaseRepository dbRepos;
 
     public ShapeImporter()
     {
+
         ConfigFileDir.mkdir();
         uploadedFilesDir.mkdir();
         importFilesDir.mkdir();
-        LoadConfigs();
 
         dbRepos = new DatabaseRepository();
     }
 
-    private void LoadConfigs() {
+    public void CreateConfigs() {
         try {
 
-            File file = new File("configFiles\\GenConfigs");
 
-            if (file.createNewFile()){
-               String[] GenConfigs={
-                       "DB_USER = postgres",
-                       "DB_PASS = root",
-                       "DB_NAME = ohdm",
-                       "DB_HOST = localhost",
-                       "SCHEME_TEMP = temp",
-                       "SCHEME_TEST = test",
-                       "SCHEME_CACHE = intermediateosm",
-                       "DB_GEO_USER=geoserver",
+
+                String[] GenConfigs = {
+                        "DB_USER = postgres",
+                        "DB_PASS = root",
+                        "DB_NAME = ohdm",
+                        "DB_HOST = localhost",
+                        "SCHEME_TEMP = temp",
+                        "SCHEME_TEST = test",
+                        "SCHEME_CACHE = intermediateosm",
+                        "DB_GEO_USER=geoserver",
                         /*STEP 2*/
-                       "DB_HOST_OHDM = localhost",
-                       "DB_PORT_OHDM = 5432",
-                       "DB_USER_OHDM = postgres",
-                       "DB_PASS_OHDM = root",
+                        "DB_HOST_OHDM = localhost",
+                        "DB_PORT_OHDM = 5432",
+                        "DB_USER_OHDM = postgres",
+                        "DB_PASS_OHDM = root",
                         //Intermediate
-                       "DB_NAME_INTERMEDIATE =ohdm",
+                        "DB_NAME_INTERMEDIATE =ohdm",
                         //ohdm
-                       "DB_NAME_OHDM = ohdm",
-                       "SCHEME_OHDM = ohdm",
-                       "SCHEME_INTERMEDIATE = intermediateosm",
-                       "GID=gid",
-                       "GEOM=geom",
-                       "VALIDSINCE=12-04-1999",
-                       "VALIDUNTIL=12-04-2022",
-                       "CLASSIFICATION_ID=13",
-                       "JDBC_DRIVER_PATH= C:\\dev\\ohdm\\postgresql-42.1.1.jar",
-                       "OHDM_CONVERTER_PATH=C:\\dev\\ohdm\\OHDMConverter.jar",
-                       "TABLENAME=''",
-                       "SHP_TO_PGSQL_FILE_PATH = C:\\Program Files\\PostgreSQL\\9.6\\bin\\shp2pgsql.exe",
-                       "PGSQL_FILE_PATH = C:\\Program Files\\PostgreSQL\\9.6\\bin\\psql.exe",
-               };
+                        "DB_NAME_OHDM = ohdm",
+                        "SCHEME_OHDM = ohdm",
+                        "SCHEME_INTERMEDIATE = intermediateosm",
+                        "GID=gid",
+                        "GEOM=geom",
+                        "COLUMNVALIDSINCEDAY=23",
+                        "COLUMNVALIDSINCEMONTH=09",
+                        "COLUMNVALIDSINCEYEAR=1930",
+                        "COLUMNVALIDUNTILDAY=07",
+                        "COLUMNVALIDUNTILMONTH=07",
+                        "COLUMNVALIDUNTILYEAR=2017",
+                        "VALIDSINCE=12-04-1999",
+                        "VALIDUNTIL=12-04-2022",
+                        "CLASSIFICATION_ID=13",
+                        "JDBC_DRIVER_PATH= C:\\dev\\ohdm\\postgresql-42.1.1.jar",
+                        "OHDM_CONVERTER_PATH=C:\\dev\\ohdm\\OHDMConverter.jar",
+                        "TABLENAME=" + TABLENAME,
+                        "SHP_TO_PGSQL_FILE_PATH = C:\\Program Files\\PostgreSQL\\9.6\\bin\\shp2pgsql.exe",
+                        "PGSQL_FILE_PATH = C:\\Program Files\\PostgreSQL\\9.6\\bin\\psql.exe",
+                };
                 Files.write(file.toPath(), Arrays.asList(GenConfigs));
 
-            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public void LoadConfigs() {
+        try {
 
             List<String> fileLines = Files.readAllLines(file.toPath());
 
@@ -142,6 +153,24 @@ public class ShapeImporter
                         break;
                     case "GEOM":
                         GEOM = VarValue;
+                        break;
+                    case "COLUMNVALIDSINCEDAY":
+                        COLUMNVALIDSINCEDAY = VarValue;
+                        break;
+                    case "COLUMNVALIDSINCEMONTH":
+                        COLUMNVALIDSINCEMONTH = VarValue;
+                        break;
+                    case "COLUMNVALIDSINCEYEAR":
+                        COLUMNVALIDSINCEYEAR = VarValue;
+                        break;
+                    case "COLUMNVALIDUNTILDAY":
+                        COLUMNVALIDUNTILDAY = VarValue;
+                        break;
+                    case "COLUMNVALIDUNTILMONTH":
+                        COLUMNVALIDUNTILMONTH = VarValue;
+                        break;
+                    case "COLUMNVALIDUNTILYEAR":
+                        COLUMNVALIDUNTILYEAR = VarValue;
                         break;
                     case "VALIDSINCE":
                         VALIDSINCE = VarValue;

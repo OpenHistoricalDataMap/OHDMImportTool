@@ -34,14 +34,20 @@ public class Config {
     public static  String GEOM;//="geom";
     public static  String VALIDSINCE;//="";
     public static  String VALIDUNTIL;//="";
+    public static  String COLUMNVALIDSINCEDAY;
+    public static  String COLUMNVALIDSINCEMONTH;
+    public static  String COLUMNVALIDSINCEYEAR;
+    public static  String COLUMNVALIDUNTILDAY;
+    public static  String COLUMNVALIDUNTILMONTH;
+    public static  String COLUMNVALIDUNTILYEAR;
+
     public static  String CLASSIFICATION_ID;//="13";
 
-    public static  String JDBC_DRIVER_PATH;//="C:\\dev\\ohdm\\postgresql-42.1.1.jar";
-    public static  String OHDM_CONVERTER_PATH;//="C:\\dev\\ohdm\\OHDMConverter.jar";
-    public static  String DB_SHAPE_IMPORT;//="";
-    public static  String DB_OHDM_HISTORIC_LOCAL;//="";
+    public static  String JDBC_DRIVER_PATH;
+    public static  String OHDM_CONVERTER_PATH;
 
-    public static String TABLENAME;//="";
+
+    public static String TABLENAME="''";
 
     /*
         required Postgres application settings with examples

@@ -10,7 +10,13 @@ public class GeoobjectGeometry {
     private long idClassification;
     private long idSourceUser;
     private Date validSince;
+    private int validSinceDay;
+    private int validSinceMonth;
+    private int validSinceYear;
     private Date validUntil;
+    private int validUntilDay;
+    private int validUntilMonth;
+    private int validUntilYear;
 
     public GeoobjectGeometry()
     {
@@ -54,21 +60,41 @@ public class GeoobjectGeometry {
         this.idClassification = idClassification;
     }
 
-    public Date getValidSince() {
-        return validSince;
-    }
+
+    public Date getValidSince() { return validSince; }
+    public int getValidSinceDay() { return validSinceDay; }
+    public int getValidSinceMonth() { return validSinceMonth; }
+    public int getValidSinceYear() { return validSinceYear; }
 
     public void setValidSince(Date validSince) {
         this.validSince = validSince;
     }
+    public void setValidSinceDay(int validSinceDay) { this.validSinceDay=validSinceDay ; }
+    public void setValidSinceMonth(int validSinceMonth) { this.validSinceMonth=validSinceMonth; }
+    public void setValidSinceYear(int validSinceYear) { this.validSinceYear=validSinceYear; }
 
     public Date getValidUntil() {
         return validUntil;
+    }
+    public int getValidUntilDay() {
+        return validUntilDay;
+    }
+    public int getValidUntilMonth() {
+        return validUntilMonth;
+    }
+    public int getValidUntilYear() {
+        return validUntilYear;
     }
 
     public void setValidUntil(Date validUntil) {
         this.validUntil = validUntil;
     }
+    public void setValidUntilDay(int validUntilDay) { this.validUntilDay=validUntilDay ; }
+    public void setValidUntilMonth(int validUntilMonth) { this.validUntilMonth=validUntilMonth; }
+    public void setValidUntilYear(int validUntilYear) { this.validUntilYear=validUntilYear; }
+
+
+
 
     public long getIdSourceUser() {
         return idSourceUser;
