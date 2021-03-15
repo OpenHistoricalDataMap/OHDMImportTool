@@ -20,7 +20,7 @@ Clone this project:
 $ git clone https://github.com/OpenHistoricalDataMap/OHDMImportTool.git
 ```
 
-Configure the necessary constants in the file [src/main/webapp/java/de/htwb/utils/Config.java](src/main/webapp/java/de/htwb/utils/Config.java)
+Configure the necessary constants in the file [src/main/webapp/java/de/htwb/shpImport/ShapeImporter.java](src/main/webapp/java/de/htwb/shpImport/ShapeImporter.java) -->CreateConfigs()
 
 ### Run with IntelliJ IDE
 
